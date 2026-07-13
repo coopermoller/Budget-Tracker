@@ -89,17 +89,20 @@ const FIXED_ITEMS = [
   { id:"phone", label:"Phone", amount:49 },
   { id:"gym", label:"Goodlife gym", amount:150 },
   { id:"storage", label:"Storage unit", amount:170 },
+  { id:"ballet", label:"Ballet Theatre QLD", amount:86.67 },
 ];
 
 const WORK_APPS = [
   { id:"flightradar", label:"Flightradar24", amount:49.99 },
   { id:"flighty", label:"Flighty Pro", amount:79.99 },
   { id:"rosterbuster", label:"RosterBuster Premium", amount:39.99 },
+  { id:"faaa", label:"FAAA Union Fees", amount:130.00 },
 ];
 
 const FIXED_SUBS = [
   { id:"appleone", label:"Apple One (family plan)", amount:49.95, note:"Split across family — keep" },
   { id:"snapchat", label:"Snapchat+", amount:5.99, note:"Keep" },
+  { id:"updoc", label:"Updoc telehealth", amount:19.95, note:"Now fixed monthly — keep" },
 ];
 
 const ENDING_SUBS = [
@@ -121,11 +124,15 @@ const ACCOUNTS = [
   { id:"buffer", oldName:"Fun Account", newName:"Buffer", purpose:"Emergency cushion only — rebuilding from zero", defaultBalance:100.24 },
   { id:"roundups", oldName:"Boost Saver", newName:"Round-Ups", purpose:"Automatic spare-change savings — never withdraw manually", defaultBalance:108.96 },
   { id:"shares", oldName:"Dividend Shares", newName:"Shares", purpose:"Automated investing — leave alone", defaultBalance:39.61 },
+  { id:"carmaint", oldName:"New account", newName:"Car Maintenance", purpose:"Tyres, services, rego — set-and-forget, only touch for actual car costs", defaultBalance:0 },
 ];
+
+const CAR_MAINT_MONTHLY = 40;
 
 const PAYDAY_SPLIT = [
   { label:"Bills", amount:2202, note:"Fixed essentials, transfer same day" },
   { label:"Card minimums", amount:330, note:"Virgin ~$195 + Qantas ~$135, pay direct via BPAY" },
+  { label:"Car maintenance", amount:40, note:"Tyres/services/rego — new account" },
   { label:"Buffer", amount:50, note:"Minimum — more in strong months" },
   { label:"Family repayment", amount:475, note:"If still active — check Debts tab" },
 ];
@@ -196,7 +203,7 @@ function atoAmount() { return isJuly() ? 161.10 : 0; }
 const CARD_MIN_TOTAL = 330;
 
 function totalObligations() {
-  return fixedTotal() + atoAmount() + familyMonthly() + CARD_MIN_TOTAL;
+  return fixedTotal() + atoAmount() + familyMonthly() + CARD_MIN_TOTAL + CAR_MAINT_MONTHLY;
 }
 
 function renderOverview() {
@@ -241,6 +248,7 @@ function renderOverview() {
       ${isJuly() ? `<div class="lineitem"><span class="l">ATO final payment<span class="tag">Last one</span></span><span class="v">${currency(atoAmount())}</span></div>` : ""}
       ${familyMonthly()>0 ? `<div class="lineitem"><span class="l">Family repayment<span class="tag">Active</span></span><span class="v">${currency(familyMonthly())}</span></div>` : ""}
       <div class="lineitem"><span class="l">Card minimums</span><span class="v">${currency(CARD_MIN_TOTAL)}</span></div>
+      <div class="lineitem"><span class="l">Car maintenance<span class="tag">New</span></span><span class="v">${currency(CAR_MAINT_MONTHLY)}</span></div>
       <div class="lineitem"><span class="l">Subscriptions</span><span class="v">${currency(subsMonthly())}</span></div>
       <div class="divider"></div>
       <div class="lineitem bold"><span class="l">Total obligations</span><span class="v">${currency(totalObligations()+subsMonthly())}</span></div>
