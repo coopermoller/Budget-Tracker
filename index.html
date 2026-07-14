@@ -601,6 +601,8 @@ function toggleSub(id) {
   state.subState[id] = !cur;
   saveState();
   renderSubs();
+  renderOverview();
+  renderAccounts();
 }
 
 function renderGoals() {
