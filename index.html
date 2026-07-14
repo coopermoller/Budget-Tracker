@@ -62,6 +62,9 @@
   .card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:14px; }
   .cardlabel { font-size:12px; letter-spacing:.06em; color:var(--text-secondary); font-weight:600; text-transform:uppercase; margin-bottom:12px; }
   .lineitem { display:flex; justify-content:space-between; padding:7px 0; font-size:14px; }
+  .lineitem-check { cursor:pointer; border-radius:6px; padding:7px 6px; margin:0 -6px; }
+  .lineitem-check:active { background:var(--bg-input); }
+  .lineitem-check.checked .l { color:var(--text-muted); text-decoration:line-through; }
   .lineitem .l { color:var(--text-body); }
   .lineitem .v { color:var(--text-body); font-variant-numeric:tabular-nums; }
   .lineitem.bold .l { color:var(--text-primary); font-weight:700; }
@@ -182,7 +185,7 @@ const BUFFER_TARGET = 500;
 
 const PAYDAY_SPLIT = [
   { id:"bills", label:"Bills", amount:2202, note:"Fixed essentials + subscriptions, transfer same day" },
-  { id:"cardmin", label:"Card minimums", amount:330, note:"Virgin ~$195 + Qantas ~$135, pay direct via BPAY" },
+  { id:"cardmin", label:"Card minimums", amount:330, note:"Virgin ~$195 + Qantas ~$135 — BPAY direct from Spending, not Bills" },
   { id:"carmaint", label:"Car maintenance", amount:40, note:"Tyres/services/rego — new account" },
   { id:"buffer", label:"Buffer", amount:50, note:"Minimum — more in strong months" },
   { id:"family", label:"Family repayment", amount:475, note:"If still active — check Debts tab" },
@@ -322,6 +325,8 @@ function totalObligations() {
 
 function renderOverview() {
   const key = monthKey(state.selectedMonth);
+  const curKey = key;
+  if (!state.monthChecklist[curKey]) state.monthChecklist[curKey] = {};
   const monthIncome = Number(state.income[key]) || 0;
   const leftover = monthIncome - totalObligations() - subsMonthly();
 
@@ -359,12 +364,12 @@ function renderOverview() {
 
     <div class="card">
       <div class="cardlabel">Where it goes — fixed obligations</div>
-      ${FIXED_ITEMS.map(i => `<div class="lineitem"><span class="l">${i.label}</span><span class="v">${currency(i.amount)}</span></div>`).join("")}
-      ${isJuly() ? `<div class="lineitem"><span class="l">ATO final payment<span class="tag">Last one</span></span><span class="v">${currency(atoAmount())}</span></div>` : ""}
-      ${familyMonthly()>0 ? `<div class="lineitem"><span class="l">Family repayment<span class="tag">Active</span></span><span class="v">${currency(familyMonthly())}</span></div>` : ""}
-      <div class="lineitem"><span class="l">Card minimums</span><span class="v">${currency(CARD_MIN_TOTAL)}</span></div>
-      <div class="lineitem"><span class="l">Car maintenance<span class="tag">New</span></span><span class="v">${currency(CAR_MAINT_MONTHLY)}</span></div>
-      <div class="lineitem"><span class="l">Subscriptions</span><span class="v">${currency(subsMonthly())}</span></div>
+      ${FIXED_ITEMS.map(i => obligationLine(curKey, i.id, i.label, i.amount, null, "Bills")).join("")}
+      ${isJuly() ? obligationLine(curKey, "ato", "ATO final payment", atoAmount(), "Last one", "Bills") : ""}
+      ${familyMonthly()>0 ? obligationLine(curKey, "family", "Family repayment", familyMonthly(), "Active", "Bills") : ""}
+      ${obligationLine(curKey, "cardmin", "Card minimums", CARD_MIN_TOTAL, null, "Spending (direct BPAY, not Bills)")}
+      ${obligationLine(curKey, "carmaint", "Car maintenance", CAR_MAINT_MONTHLY, "New", "Car Maintenance account (saved, not spent)")}
+      ${obligationLine(curKey, "subspaid", "Subscriptions", subsMonthly(), null, "Bills")}
       <div class="divider"></div>
       <div class="lineitem bold"><span class="l">Total obligations</span><span class="v">${currency(totalObligations()+subsMonthly())}</span></div>
     </div>
@@ -377,7 +382,18 @@ function renderOverview() {
   `;
 }
 
-function selectMonth(idx) { state.selectedMonth = idx; saveState(); renderOverview(); }
+function obligationLine(curKey, id, label, amount, tagText, fromAccount) {
+  const checked = !!state.monthChecklist[curKey][id];
+  return `<div class="lineitem lineitem-check ${checked?'checked':''}" onclick="toggleChecklistItem('${id}')">
+    <span class="l">${label}${tagText ? `<span class="tag">${tagText}</span>` : ""}${fromAccount ? `<div class="subnote" style="margin-top:1px">from ${fromAccount}</div>` : ""}</span>
+    <span class="row" style="gap:8px">
+      <span class="v">${currency(amount)}</span>
+      <span style="font-size:16px">${checked ? '☑' : '☐'}</span>
+    </span>
+  </div>`;
+}
+
+function selectMonth(idx) { state.selectedMonth = idx; saveState(); renderOverview(); renderAccounts(); }
 function logIncome(key) {
   const input = document.getElementById("incomeInput");
   const v = parseFloat(input.value);
@@ -458,7 +474,7 @@ function updateDebt(which, val) {
 }
 
 function getSplitAmount(item) {
-  return item.id === "bills" ? item.amount + subsMonthly() : item.amount;
+  return item.id === "bills" ? fixedTotal() + subsMonthly() : item.amount;
 }
 
 function renderAccounts() {
@@ -546,6 +562,7 @@ function toggleChecklistItem(itemId) {
   state.monthChecklist[key][itemId] = !state.monthChecklist[key][itemId];
   saveState();
   renderAccounts();
+  renderOverview();
 }
 
 function updateAccount(id, val) {
