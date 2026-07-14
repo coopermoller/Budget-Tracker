@@ -4,50 +4,94 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Cooper's Budget</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2312181c'/%3E%3Ctext x='50' y='65' font-size='55' text-anchor='middle' fill='%23c9a15a' font-family='serif'%3EA%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1b2a'/%3E%3Ctext x='50' y='65' font-size='55' text-anchor='middle' fill='%23f2a154' font-family='serif'%3EA%3C/text%3E%3C/svg%3E">
+<script>
+  // Apply saved theme before paint to avoid a flash of the wrong theme
+  (function() {
+    var saved = localStorage.getItem("cooper-budget-theme");
+    var theme = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { margin:0; background:#12181c; color:#e8e2d4; font-family:'Inter',ui-sans-serif,sans-serif; padding-bottom:40px; }
+
+  :root, html[data-theme="dark"] {
+    --bg:#0d1b2a; --bg-card:#122234; --bg-input:#0a1520;
+    --border:#1e344a; --border-strong:#2e4a66;
+    --text-primary:#eef4f9; --text-body:#d7e2ec; --text-secondary:#8fa3b8; --text-muted:#5a7085;
+    --accent:#f2a154; --accent-contrast:#0d1b2a; --accent-soft:#f2a15422; --accent-border-soft:#f2a15444;
+    --danger:#e8637a; --danger-bg:#2a1620; --danger-border:#e8637a;
+    --success:#5cc0a0; --success-bg:#122a24; --success-border:#2e5a4a;
+    --neutral-bar:#7d93a8;
+    --tabbtn-active-bg:#16273c; --subrow-border:#16273c;
+    --toast-bg:#16273c; --toast-text:#eef4f9;
+  }
+
+  html[data-theme="light"] {
+    --bg:#f5f8fb; --bg-card:#ffffff; --bg-input:#eef2f6;
+    --border:#dbe4ec; --border-strong:#c3d1de;
+    --text-primary:#0d1b2a; --text-body:#26374a; --text-secondary:#5c7185; --text-muted:#8ea0b3;
+    --accent:#c97f2e; --accent-contrast:#ffffff; --accent-soft:#c97f2e1a; --accent-border-soft:#c97f2e55;
+    --danger:#c94a63; --danger-bg:#fdecef; --danger-border:#c94a63;
+    --success:#2f8f68; --success-bg:#e9f7f1; --success-border:#2f8f68;
+    --neutral-bar:#6b8299;
+    --tabbtn-active-bg:#eaf1f7; --subrow-border:#e7edf3;
+    --toast-bg:#16273c; --toast-text:#eef4f9;
+  }
+
+  body { margin:0; background:var(--bg); color:var(--text-body); font-family:'Inter',ui-sans-serif,sans-serif; padding-bottom:40px; transition:background .2s,color .2s; }
   .wrap { max-width:480px; margin:0 auto; padding:24px 16px; }
-  .header { margin-bottom:20px; padding:4px 4px 16px; border-bottom:1px solid #26313a; }
-  .eyebrow { font-size:11px; letter-spacing:.18em; color:#c9a15a; font-weight:600; margin-bottom:4px; }
-  .title { font-family:'Fraunces',serif; font-size:30px; font-weight:600; color:#f4efe4; }
-  .sub { font-size:13px; color:#9aa5b1; margin-top:6px; }
+  .header { margin-bottom:20px; padding:4px 4px 16px; border-bottom:1px solid var(--border); }
+  .header-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .eyebrow { font-size:11px; letter-spacing:.18em; color:var(--accent); font-weight:600; margin-bottom:4px; }
+  .title { font-family:'Fraunces',serif; font-size:30px; font-weight:600; color:var(--text-primary); }
+  .sub { font-size:13px; color:var(--text-secondary); margin-top:6px; }
+  .theme-toggle { flex-shrink:0; width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:var(--bg-card); color:var(--text-primary); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .goals-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:16px; }
+  .goal-chip { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:10px 8px; }
+  .goal-label { font-size:9px; letter-spacing:.04em; color:var(--text-secondary); font-weight:700; text-transform:uppercase; margin-bottom:4px; }
+  .goal-value { font-size:13px; color:var(--text-primary); font-weight:700; line-height:1.2; }
+  .goal-sub { font-size:10px; color:var(--text-muted); margin-top:2px; }
+  .mini-track { height:4px; background:var(--bg-input); border-radius:4px; overflow:hidden; margin-top:6px; }
+  .mini-fill { height:100%; border-radius:4px; }
   .tabbar { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
-  .tabbtn { flex:1; min-width:70px; padding:10px 6px; border-radius:10px; border:1px solid #2a3640; background:transparent; color:#9aa5b1; font-size:12px; font-weight:600; cursor:pointer; }
-  .tabbtn.active { background:#1c2731; color:#f4efe4; border-color:#3a4a58; }
-  .card { background:#161f26; border:1px solid #232f38; border-radius:16px; padding:18px; margin-bottom:14px; }
-  .cardlabel { font-size:12px; letter-spacing:.06em; color:#8b93a6; font-weight:600; text-transform:uppercase; margin-bottom:12px; }
+  .tabbtn { flex:1; min-width:70px; padding:10px 6px; border-radius:10px; border:1px solid var(--border); background:transparent; color:var(--text-secondary); font-size:12px; font-weight:600; cursor:pointer; }
+  .tabbtn.active { background:var(--tabbtn-active-bg); color:var(--text-primary); border-color:var(--border-strong); }
+  .card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:14px; }
+  .cardlabel { font-size:12px; letter-spacing:.06em; color:var(--text-secondary); font-weight:600; text-transform:uppercase; margin-bottom:12px; }
   .lineitem { display:flex; justify-content:space-between; padding:7px 0; font-size:14px; }
-  .lineitem .l { color:#c3cad4; }
-  .lineitem .v { color:#e8e2d4; font-variant-numeric:tabular-nums; }
-  .lineitem.bold .l { color:#f4efe4; font-weight:700; }
-  .lineitem.bold .v { color:#c9a15a; font-weight:700; }
-  .tag { font-size:10px; color:#c9a15a; margin-left:8px; border:1px solid #c9a15a44; padding:2px 6px; border-radius:6px; }
-  .divider { height:1px; background:#232f38; margin:8px 0; }
-  .bigval { font-family:'Fraunces',serif; font-size:34px; font-weight:600; color:#f4efe4; }
-  .note { font-size:13px; color:#9aa5b1; margin-top:6px; line-height:1.4; }
-  input[type=number], input[type=text] { padding:12px 14px; border-radius:10px; border:1px solid #2a3640; background:#0f1519; color:#f4efe4; font-size:15px; outline:none; width:100%; }
+  .lineitem .l { color:var(--text-body); }
+  .lineitem .v { color:var(--text-body); font-variant-numeric:tabular-nums; }
+  .lineitem.bold .l { color:var(--text-primary); font-weight:700; }
+  .lineitem.bold .v { color:var(--accent); font-weight:700; }
+  .tag { font-size:10px; color:var(--accent); margin-left:8px; border:1px solid var(--accent-border-soft); padding:2px 6px; border-radius:6px; }
+  .divider { height:1px; background:var(--border); margin:8px 0; }
+  .bigval { font-family:'Fraunces',serif; font-size:34px; font-weight:600; color:var(--text-primary); }
+  .note { font-size:13px; color:var(--text-secondary); margin-top:6px; line-height:1.4; }
+  input[type=number], input[type=text] { padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:15px; outline:none; width:100%; }
   .row { display:flex; gap:8px; align-items:center; }
-  .btn { padding:12px 18px; border-radius:10px; border:none; background:#c9a15a; color:#12181c; font-weight:700; font-size:14px; cursor:pointer; }
-  .btn-outline { padding:10px 16px; border-radius:10px; border:1px solid #c9a15a; background:transparent; color:#c9a15a; font-weight:600; font-size:13px; cursor:pointer; }
-  .btn-tiny { padding:6px 12px; border-radius:8px; border:1px solid #e83f5a; background:transparent; color:#e83f5a; font-size:12px; font-weight:600; cursor:pointer; }
-  .tag-cut { font-size:11px; color:#8b93a6; border:1px solid #2a3640; padding:3px 9px; border-radius:6px; font-weight:600; cursor:pointer; }
-  .tag-keep { font-size:11px; color:#5fae7d; border:1px solid #5fae7d44; padding:3px 9px; border-radius:6px; font-weight:600; }
+  .btn { padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:14px; cursor:pointer; }
+  .btn-outline { padding:10px 16px; border-radius:10px; border:1px solid var(--accent); background:transparent; color:var(--accent); font-weight:600; font-size:13px; cursor:pointer; }
+  .btn-tiny { padding:6px 12px; border-radius:8px; border:1px solid var(--danger); background:transparent; color:var(--danger); font-size:12px; font-weight:600; cursor:pointer; }
+  .tag-cut { font-size:11px; color:var(--text-secondary); border:1px solid var(--border); padding:3px 9px; border-radius:6px; font-weight:600; cursor:pointer; }
+  .tag-keep { font-size:11px; color:var(--success); border:1px solid var(--success-border); padding:3px 9px; border-radius:6px; font-weight:600; }
   .month-picker { display:flex; flex-wrap:wrap; gap:6px; }
-  .chip { padding:6px 10px; border-radius:8px; border:1px solid #2a3640; background:transparent; color:#9aa5b1; font-size:12px; cursor:pointer; }
-  .chip.active { background:#c9a15a; color:#12181c; border-color:#c9a15a; font-weight:700; }
-  .progress-track { height:8px; background:#0f1519; border-radius:6px; overflow:hidden; margin-bottom:10px; }
+  .chip { padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text-secondary); font-size:12px; cursor:pointer; }
+  .chip.active { background:var(--accent); color:var(--accent-contrast); border-color:var(--accent); font-weight:700; }
+  .chip-payoff { border-color:var(--success); color:var(--success); }
+  .progress-track { height:8px; background:var(--bg-input); border-radius:6px; overflow:hidden; margin-bottom:10px; }
   .progress-fill { height:100%; border-radius:6px; transition:width .3s; }
-  .subrow { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #1c2731; }
-  .sublabel { font-size:14px; color:#f4efe4; font-weight:600; }
-  .sublabel.cut { text-decoration:line-through; color:#6b7480; }
-  .subnote { font-size:12px; color:#8b93a6; margin-top:2px; }
-  .seqstep { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:#c3cad4; padding:6px 0; line-height:1.4; }
-  .stepnum { flex-shrink:0; width:20px; height:20px; border-radius:50%; background:#c9a15a22; color:#c9a15a; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .subrow { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--subrow-border); }
+  .sublabel { font-size:14px; color:var(--text-primary); font-weight:600; }
+  .sublabel.cut { text-decoration:line-through; color:var(--text-muted); }
+  .subnote { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .seqstep { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text-body); padding:6px 0; line-height:1.4; }
+  .stepnum { flex-shrink:0; width:20px; height:20px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
   .acct-input { width:110px; text-align:right; padding:6px 10px; font-size:14px; }
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1c2731; color:#f4efe4; padding:10px 18px; border-radius:10px; font-size:13px; border:1px solid #2a3640; box-shadow:0 4px 20px rgba(0,0,0,.4); display:none; z-index:99; }
+  .acct-warning { margin-top:10px; padding:10px 12px; border-radius:8px; background:var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger); font-size:12px; line-height:1.4; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--toast-bg); color:var(--toast-text); padding:10px 18px; border-radius:10px; font-size:13px; border:1px solid var(--border-strong); box-shadow:0 4px 20px rgba(0,0,0,.4); display:none; z-index:99; }
   .footer-actions { display:flex; gap:8px; margin-top:20px; }
   .footer-actions button { flex:1; }
 </style>
@@ -55,9 +99,15 @@
 <body>
 <div class="wrap">
   <div class="header">
-    <div class="eyebrow">ALTITUDE</div>
-    <div class="title">Cooper's Budget</div>
-    <div class="sub">Combined card debt: <strong id="totalDebtHeader">$0</strong></div>
+    <div class="header-top">
+      <div>
+        <div class="eyebrow">ALTITUDE</div>
+        <div class="title">Cooper's Budget</div>
+        <div class="sub">Combined card debt: <strong id="totalDebtHeader">$0</strong></div>
+      </div>
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle light/dark mode">🌙</button>
+    </div>
+    <div class="goals-row" id="goalsRow"></div>
   </div>
 
   <div class="tabbar">
@@ -120,7 +170,7 @@ const TOGGLEABLE_SUBS = [
 
 const ACCOUNTS = [
   { id:"spending", oldName:"Payroll", newName:"Spending", purpose:"Everyday debit-only spending — salary lands here, food/fuel comes out", defaultBalance:56.29 },
-  { id:"bills", oldName:"Go Account", newName:"Bills", purpose:"Rent, insurance, utilities, phone, gym, storage — fixed transfer every payday", defaultBalance:12.79 },
+  { id:"bills", oldName:"Go Account", newName:"Bills", purpose:"Rent, insurance, utilities, phone, gym, storage, and all subscriptions — fixed transfer every payday", defaultBalance:12.79 },
   { id:"buffer", oldName:"Fun Account", newName:"Buffer", purpose:"Emergency cushion only — rebuilding from zero", defaultBalance:100.24 },
   { id:"roundups", oldName:"Boost Saver", newName:"Round-Ups", purpose:"Automatic spare-change savings — never withdraw manually", defaultBalance:108.96 },
   { id:"shares", oldName:"Dividend Shares", newName:"Shares", purpose:"Automated investing — leave alone", defaultBalance:39.61 },
@@ -128,17 +178,43 @@ const ACCOUNTS = [
 ];
 
 const CAR_MAINT_MONTHLY = 40;
+const BUFFER_TARGET = 500;
 
 const PAYDAY_SPLIT = [
-  { label:"Bills", amount:2202, note:"Fixed essentials, transfer same day" },
-  { label:"Card minimums", amount:330, note:"Virgin ~$195 + Qantas ~$135, pay direct via BPAY" },
-  { label:"Car maintenance", amount:40, note:"Tyres/services/rego — new account" },
-  { label:"Buffer", amount:50, note:"Minimum — more in strong months" },
-  { label:"Family repayment", amount:475, note:"If still active — check Debts tab" },
+  { id:"bills", label:"Bills", amount:2202, note:"Fixed essentials + subscriptions, transfer same day" },
+  { id:"cardmin", label:"Card minimums", amount:330, note:"Virgin ~$195 + Qantas ~$135, pay direct via BPAY" },
+  { id:"carmaint", label:"Car maintenance", amount:40, note:"Tyres/services/rego — new account" },
+  { id:"buffer", label:"Buffer", amount:50, note:"Minimum — more in strong months" },
+  { id:"family", label:"Family repayment", amount:475, note:"If still active — check Debts tab" },
+];
+
+const OTHER_CHECKLIST_ITEMS = [
+  { id:"income", label:"Logged this month's payday income" },
+  { id:"updateddebts", label:"Updated card balances after statements" },
+  { id:"foodcap", label:"Checked food/fuel spend against cap" },
+  { id:"subs", label:"Reviewed subscriptions for drift" },
 ];
 
 const VIRGIN_START = 9808.97;
 const QANTAS_START = 6754.57;
+
+// Jan 2025 through Dec 2028 — covers history plus a realistic payoff runway.
+// Estimate: minimums-only through the family repayment (ends ~Nov 2026), then
+// a $600/month floor with a $1,200-1,600 stretch in stronger months — blended
+// average ~$900/month combined — clears both cards by around December 2028.
+const MONTH_LIST = (() => {
+  const list = [];
+  let y = 2025, m = 0;
+  while (!(y === 2029 && m === 0)) {
+    list.push({ y, m, label: `${MONTHS[m]} '${String(y).slice(2)}` });
+    m++;
+    if (m > 11) { m = 0; y++; }
+  }
+  return list;
+})();
+
+const DEFAULT_MONTH_INDEX = MONTH_LIST.findIndex(x => x.y === 2026 && x.m === 6); // Jul 2026
+const EST_PAYOFF_INDEX = MONTH_LIST.findIndex(x => x.y === 2028 && x.m === 11); // Dec 2028
 
 const STORAGE_KEY = "cooper-budget-data-v1";
 
@@ -148,7 +224,8 @@ let state = {
   debts: { virgin: VIRGIN_START, qantas: QANTAS_START },
   accounts: {},
   family: { total: 1900, paid: 0 },
-  selectedMonth: 6,
+  selectedMonth: DEFAULT_MONTH_INDEX,
+  monthChecklist: {},
 };
 
 function loadState() {
@@ -160,6 +237,19 @@ function loadState() {
     }
   } catch (e) { console.error("load failed", e); }
   ACCOUNTS.forEach(a => { if (!(a.id in state.accounts)) state.accounts[a.id] = a.defaultBalance; });
+  // Migration: older saves used a 0-11 index meaning "month of 2026".
+  // Reset to the correct default under the new Jan'25–Dec'27 range.
+  if (!state._monthSchemeV2) {
+    state.selectedMonth = DEFAULT_MONTH_INDEX;
+    state._monthSchemeV2 = true;
+    saveState();
+  }
+  // One-time reset of family repayment progress, requested manually.
+  if (!state._familyResetV1) {
+    state.family.paid = 0;
+    state._familyResetV1 = true;
+    saveState();
+  }
 }
 
 function saveState() {
@@ -180,7 +270,28 @@ function showToast(msg) {
   window._toastTimer = setTimeout(() => { t.style.display = "none"; }, 2200);
 }
 
-function monthKey(m) { return `2026-${String(m+1).padStart(2,"0")}`; }
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const next = cur === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("cooper-budget-theme", next);
+  syncThemeIcon();
+}
+
+function syncThemeIcon() {
+  const theme = document.documentElement.getAttribute("data-theme");
+  const btn = document.getElementById("themeToggleBtn");
+  if (btn) btn.textContent = theme === "light" ? "☀️" : "🌙";
+}
+
+function monthKey(idx) {
+  const mo = MONTH_LIST[idx] || MONTH_LIST[DEFAULT_MONTH_INDEX];
+  return `${mo.y}-${String(mo.m+1).padStart(2,"0")}`;
+}
+function fullMonthLabel(idx) {
+  const mo = MONTH_LIST[idx] || MONTH_LIST[DEFAULT_MONTH_INDEX];
+  return `${MONTHS[mo.m]} ${mo.y}`;
+}
 
 function fixedTotal() { return FIXED_ITEMS.reduce((s,i)=>s+i.amount,0); }
 function workAppsMonthly() { return WORK_APPS.reduce((s,a)=>s+a.amount/12,0); }
@@ -197,7 +308,10 @@ function familyActive() { return state.family.paid < state.family.total; }
 function familyMonthly() { return familyActive() ? 475 : 0; }
 function familyRemaining() { return Math.max(0, state.family.total - state.family.paid); }
 
-function isJuly() { return state.selectedMonth === 6; }
+function isJuly() {
+  const mo = MONTH_LIST[state.selectedMonth];
+  return mo && mo.y === 2026 && mo.m === 6;
+}
 function atoAmount() { return isJuly() ? 161.10 : 0; }
 
 const CARD_MIN_TOTAL = 330;
@@ -211,12 +325,12 @@ function renderOverview() {
   const monthIncome = Number(state.income[key]) || 0;
   const leftover = monthIncome - totalObligations() - subsMonthly();
 
-  let monthChips = MONTHS.map((m,idx) =>
-    `<button class="chip ${idx===state.selectedMonth?'active':''}" onclick="selectMonth(${idx})">${m}</button>`
+  let monthChips = MONTH_LIST.map((mo,idx) =>
+    `<button class="chip ${idx===state.selectedMonth?'active':''} ${idx===EST_PAYOFF_INDEX?'chip-payoff':''}" onclick="selectMonth(${idx})">${mo.label}${idx===EST_PAYOFF_INDEX?' 🎯':''}</button>`
   ).join("");
 
   let incomeBlock = monthIncome > 0
-    ? `<div class="bigval" style="color:#c9a15a">${currency(monthIncome)} logged</div>
+    ? `<div class="bigval" style="color:var(--accent)">${currency(monthIncome)} logged</div>
        <button class="btn-outline" style="margin-top:10px" onclick="clearIncome('${key}')">Edit</button>`
     : `<div class="row">
          <input type="number" inputmode="decimal" id="incomeInput" placeholder="e.g. 4432.74" />
@@ -229,13 +343,14 @@ function renderOverview() {
     ? "Tight month. Food + fuel budget: keep it under $350–400."
     : "Solid month. Send extra to the Qantas card balance before it disappears into spending.";
 
-  let leftoverBorder = leftover < 0 ? "#e83f5a" : "#2f4a3a";
-  let leftoverBg = leftover < 0 ? "#241a1e" : "#16211c";
+  let leftoverBorder = leftover < 0 ? "var(--danger-border)" : "var(--success-border)";
+  let leftoverBg = leftover < 0 ? "var(--danger-bg)" : "var(--success-bg)";
 
   document.getElementById("tab-overview").innerHTML = `
     <div class="card">
       <div class="cardlabel">Pay period</div>
-      <div class="month-picker">${monthChips}</div>
+      <div class="month-picker" style="max-height:140px;overflow-y:auto;padding-right:4px">${monthChips}</div>
+      <div class="note">🎯 marks the estimated payoff month — $600/month floor (works even in your lowest pay month), stretching to $1,200–1,600 in stronger months once the family repayment ends</div>
       <div style="margin-top:18px">
         <div class="cardlabel">Net pay this period (15th payday)</div>
         ${incomeBlock}
@@ -286,8 +401,8 @@ function renderDebts() {
   document.getElementById("tab-debts").innerHTML = `
     <div class="card">
       <div class="cardlabel">Family repayment — $1,900 over 4 months</div>
-      <div class="progress-track"><div class="progress-fill" style="width:${famPct}%;background:#c9a15a"></div></div>
-      <div class="row" style="justify-content:space-between;font-size:13px;color:#9aa5b1">
+      <div class="progress-track"><div class="progress-fill" style="width:${famPct}%;background:var(--accent)"></div></div>
+      <div class="row" style="justify-content:space-between;font-size:13px;color:var(--text-secondary)">
         <span>${currency(state.family.paid)} paid</span><span>${currency(familyRemaining())} left</span>
       </div>
       ${familyActive()
@@ -298,8 +413,8 @@ function renderDebts() {
 
     <div class="card">
       <div class="cardlabel">Qantas Everyday Card — pay this off first</div>
-      <div class="progress-track"><div class="progress-fill" style="width:${qPct}%;background:#e83f5a"></div></div>
-      <div class="row" style="justify-content:space-between;font-size:13px;color:#9aa5b1">
+      <div class="progress-track"><div class="progress-fill" style="width:${qPct}%;background:var(--danger)"></div></div>
+      <div class="row" style="justify-content:space-between;font-size:13px;color:var(--text-secondary)">
         <span>Balance</span>
         <input class="acct-input" type="number" inputmode="decimal" value="${state.debts.qantas}" onchange="updateDebt('qantas', this.value)" />
       </div>
@@ -308,8 +423,8 @@ function renderDebts() {
 
     <div class="card">
       <div class="cardlabel">Virgin Velocity Card — minimums until Qantas clears</div>
-      <div class="progress-track"><div class="progress-fill" style="width:${vPct}%;background:#8b93a6"></div></div>
-      <div class="row" style="justify-content:space-between;font-size:13px;color:#9aa5b1">
+      <div class="progress-track"><div class="progress-fill" style="width:${vPct}%;background:var(--neutral-bar)"></div></div>
+      <div class="row" style="justify-content:space-between;font-size:13px;color:var(--text-secondary)">
         <span>Balance</span>
         <input class="acct-input" type="number" inputmode="decimal" value="${state.debts.virgin}" onchange="updateDebt('virgin', this.value)" />
       </div>
@@ -331,6 +446,7 @@ function logFamily() {
   saveState();
   showToast("Logged $475 to family repayment");
   renderDebts();
+  renderGoals();
 }
 function updateDebt(which, val) {
   const v = parseFloat(val);
@@ -338,10 +454,33 @@ function updateDebt(which, val) {
   state.debts[which] = v;
   saveState();
   renderDebts();
+  renderGoals();
+}
+
+function getSplitAmount(item) {
+  return item.id === "bills" ? item.amount + subsMonthly() : item.amount;
 }
 
 function renderAccounts() {
-  let rows = ACCOUNTS.map(a => `
+  const curKey = monthKey(state.selectedMonth);
+  if (!state.monthChecklist[curKey]) state.monthChecklist[curKey] = {};
+
+  let rows = ACCOUNTS.map(a => {
+    const splitItem = PAYDAY_SPLIT.find(p => p.id === a.id);
+    let warningHtml = "";
+    if (splitItem) {
+      const target = getSplitAmount(splitItem);
+      const bal = Number(state.accounts[a.id]) || 0;
+      const checked = !!state.monthChecklist[curKey][splitItem.id];
+      if (bal < target) {
+        warningHtml = `<div class="acct-warning">
+          ⚠️ ${checked
+            ? `Marked as transferred, but balance is only ${currency(bal)} — expected at least ${currency(target)} for ${fullMonthLabel(state.selectedMonth)}.`
+            : `Below this month's ${currency(target)} target — check the payday transfer has gone through.`}
+        </div>`;
+      }
+    }
+    return `
     <div class="card">
       <div class="row" style="justify-content:space-between;align-items:flex-start">
         <div>
@@ -353,27 +492,60 @@ function renderAccounts() {
         <span class="cardlabel" style="margin-bottom:0">Balance</span>
         <input class="acct-input" type="number" inputmode="decimal" value="${state.accounts[a.id]}" onchange="updateAccount('${a.id}', this.value)" />
       </div>
+      ${warningHtml}
     </div>
-  `).join("");
+  `;
+  }).join("");
 
-  let splitRows = PAYDAY_SPLIT.map(p => `
-    <div class="lineitem"><span class="l">${p.label}<div class="subnote">${p.note}</div></span><span class="v">${currency(p.amount)}</span></div>
-  `).join("");
+  let splitRows = PAYDAY_SPLIT.map(p => {
+    const checked = !!state.monthChecklist[curKey][p.id];
+    const amt = getSplitAmount(p);
+    return `<div class="subrow" onclick="toggleChecklistItem('${p.id}')" style="cursor:pointer">
+      <div>
+        <div class="sublabel ${checked?'cut':''}">${p.label} — ${currency(amt)}</div>
+        <div class="subnote">${p.note}</div>
+      </div>
+      <div style="font-size:18px;flex-shrink:0;margin-left:12px">${checked ? '☑' : '☐'}</div>
+    </div>`;
+  }).join("");
 
   const totalCash = Object.values(state.accounts).reduce((s,v)=>s+(Number(v)||0),0);
 
+  let endOfMonthRows = OTHER_CHECKLIST_ITEMS.map(item => {
+    const checked = !!state.monthChecklist[curKey][item.id];
+    return `<div class="subrow" onclick="toggleChecklistItem('${item.id}')" style="cursor:pointer">
+      <div class="sublabel ${checked?'cut':''}">${item.label}</div>
+      <div style="font-size:18px">${checked ? '☑' : '☐'}</div>
+    </div>`;
+  }).join("");
+
   document.getElementById("tab-accounts").innerHTML = `
     <div class="card">
-      <div class="cardlabel">Minimum payday split</div>
+      <div class="cardlabel">Minimum payday split — ${fullMonthLabel(state.selectedMonth)}</div>
       ${splitRows}
-      <div class="note">Rest stays in Spending for food, fuel, and everything else</div>
+      <div class="note">Tap a row once that transfer's done. Rest stays in Spending for food, fuel, and everything else.</div>
     </div>
+
     ${rows}
     <div class="card">
       <div class="cardlabel">Total cash across all accounts</div>
       <div class="bigval">${currency(totalCash)}</div>
     </div>
+
+    <div class="card">
+      <div class="cardlabel">Other monthly checks — ${fullMonthLabel(state.selectedMonth)}</div>
+      ${endOfMonthRows}
+      <div class="note">Change the month on the Monthly tab to review a different period</div>
+    </div>
   `;
+}
+
+function toggleChecklistItem(itemId) {
+  const key = monthKey(state.selectedMonth);
+  if (!state.monthChecklist[key]) state.monthChecklist[key] = {};
+  state.monthChecklist[key][itemId] = !state.monthChecklist[key][itemId];
+  saveState();
+  renderAccounts();
 }
 
 function updateAccount(id, val) {
@@ -382,6 +554,7 @@ function updateAccount(id, val) {
   state.accounts[id] = v;
   saveState();
   renderAccounts();
+  renderGoals();
 }
 
 function renderSubs() {
@@ -430,7 +603,40 @@ function toggleSub(id) {
   renderSubs();
 }
 
+function renderGoals() {
+  const bufferBal = Number(state.accounts.buffer) || 0;
+  const bufferPct = Math.max(2, Math.min(100, (bufferBal / BUFFER_TARGET) * 100));
+
+  const totalStart = VIRGIN_START + QANTAS_START;
+  const totalNow = state.debts.virgin + state.debts.qantas;
+  const debtPct = Math.max(2, Math.min(100, 100 - (totalNow / totalStart) * 100));
+
+  const famPct = Math.max(2, Math.min(100, (state.family.paid / state.family.total) * 100));
+
+  document.getElementById("goalsRow").innerHTML = `
+    <div class="goal-chip">
+      <div class="goal-label">Buffer</div>
+      <div class="goal-value">${currency(bufferBal)}</div>
+      <div class="goal-sub">of ${currency(BUFFER_TARGET)} target</div>
+      <div class="mini-track"><div class="mini-fill" style="width:${bufferPct}%;background:var(--accent)"></div></div>
+    </div>
+    <div class="goal-chip">
+      <div class="goal-label">Cards cleared</div>
+      <div class="goal-value">${currency(totalNow)}</div>
+      <div class="goal-sub">left, targeting Dec '28</div>
+      <div class="mini-track"><div class="mini-fill" style="width:${debtPct}%;background:var(--danger)"></div></div>
+    </div>
+    <div class="goal-chip">
+      <div class="goal-label">Family debt</div>
+      <div class="goal-value">${currency(state.family.paid)}</div>
+      <div class="goal-sub">of ${currency(state.family.total)} repaid</div>
+      <div class="mini-track"><div class="mini-fill" style="width:${famPct}%;background:var(--success)"></div></div>
+    </div>
+  `;
+}
+
 function renderAll() {
+  renderGoals();
   renderOverview();
   renderDebts();
   renderAccounts();
@@ -484,6 +690,7 @@ function importPrompt() {
 }
 
 loadState();
+syncThemeIcon();
 renderAll();
 </script>
 </body>
